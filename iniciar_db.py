@@ -3,23 +3,6 @@ from Filtros import Filter
 from Fact import Fact
 from Rules import Rule
 from tipo_aprendizaje import Tipo
-#filter
-#1- 5d93da0d187f6d2fb4cc1eba
-#2- 5d93da0d187f6d2fb4cc1ebb
-#3- 5d93da0d187f6d2fb4cc1ebc
-#4- 5d93da0d187f6d2fb4cc1ebd
-
-#facts
-#1- 5d941c98187f6d2c9cd73594
-#2- 5d941c98187f6d2c9cd73595
-#3- 5d941c98187f6d2c9cd73596
-#4- 5d941c98187f6d2c9cd73597
-
-
-#tipo diabetes
-#1- 5d9445f8a2b9c03514aab2d0 -- tipo 1
-#2- 5d944733a2b9c03514aab2d1 -- tipo 2
-#3- 5d944768a2b9c03514aab2d2 -- gestacional
 
 # Creo una lista de objetos Ruta a insertar en la BD
 filters = [Filter("caracteristica"),Filter("tipo de aprendizaje")]
@@ -120,7 +103,7 @@ def fill_tipos():
         for t in types:
             #convierte el objeto en colección
             obj = type_collections.insert_one(t.toDBCollection())
-            print('id de doc insert: '+ str(obj.inserted_id))
+            #print('id de doc insert: '+ str(obj.inserted_id))
     except ValueError:
         print("imposible to connect with database") 
 

@@ -1,7 +1,6 @@
 from pymongo import MongoClient
 from iniciar_db import fill_filter, fill_rules, fill_tipos
 from iniciar_db import fill_facts
-from Agendas import Agenda
 
 
 #Conexión al Server de MongoDB Pasandole el host y el puerto
@@ -13,14 +12,11 @@ db = mongoClient.AprendizajeES
 filter_collections = db.filters
 facts_collections = db.facts
 rules_collections = db.rules
-agenda_collections = db.agenda
 tipos_collections = db.tipos
 
 #update weighing/ponderación
-def update_weighing():
-  pass
-
-def consecuent_tipos(id_consecuent,weighing_new):
+#TODO imprimir resultado final y eliminar prints de verificación
+def update_weighing(id_consecuent,weighing_new):
   tipos = tipos_collections.find()
   for t in tipos:
     if t.get('id_hecho') == id_consecuent:
@@ -28,14 +24,10 @@ def consecuent_tipos(id_consecuent,weighing_new):
       peso_tipo = t.get('weighing')
       peso_actualizar = peso_tipo + (1-peso_tipo) * weighing_new
       tipos_collections.update({"_id": id_tipo},{"$set": {"weighing":peso_actualizar}})    
-      print('peso actualizado')
-
-      #modificar punto-barrio de una ruta
-      #collection.update({"edad":{"$gt":30}},{"$inc":{"edad":100}}, upsert = False, multi = True)
-      #print('id_hecho encontrado: '+t.get('id_hecho'))
+      #print('peso actualizado')
 
 #update answer
-#busco en los antecedentes de las reglas si esta ese id
+#buscar en los antecedentes de las reglas si esta ese id
 def update_answer(id_hecho):
   #encuentra todos los antecedentes con el id_hecho
   rule_cursor = rules_collections.find({"antecedent":{"$in":[id_hecho]}})
@@ -44,26 +36,23 @@ def update_answer(id_hecho):
     id_rule = rule['_id']
     weighing = rule['weighing']
     consecuent = rule['consecuent']
-    print('id_rule: '+ str(rule['_id']))
+    #print('id_rule: '+ str(rule['_id']))
 
     #enviar el consecuent mirar con que tipo de aprendizaje coincide y actualizar peso
-    consecuent_tipos(consecuent,weighing)
-
-def agenda_insert(id_rule,weighing):
-  agen = Agenda(id_rule,weighing)
-  db.agenda.insert_one(agen.toDBCollection())
-  print('se inserto agenda')
+    update_weighing(consecuent,weighing)
 
 #User Questions
 def questions():
     num_docs = facts_collections.count()
-    print(num_docs)
-    con1 = 0
+    #print(num_docs)
     count = 0
     facts_pull = facts_collections.find()
     #print(type(facts_pull))
 
+    #TODO modificar el for para que recorra por index y elemento 
+    
     for f in facts_pull:
+      if count < num_docs-4:
         print(f.get("question"))
         
         #si la pregunta es de si/no
@@ -77,10 +66,18 @@ def questions():
             
             if answer == 1:
                 id_hecho= str(f.get("_id"))
-                print('id_hecho: '+ id_hecho)
+                #print('id_hecho: '+ id_hecho)
                 update_answer(id_hecho)
-                con1 = con1 +1
-    
+        count += 1
+
+def imprimirResultados():
+  tipos = tipos_collections.find()
+  print("***** Resultado Final *****"+'\n')
+  for t in tipos:
+    print("tipo de aprendizaje: " + t.get('tipo'))
+    print("Ponderación: " + str(t.get('weighing')))
+    print('\n')
+
 #load, delete of collections
 def load_filter():
   try:
@@ -106,7 +103,7 @@ def load_rules():
 def load_tipos():
   try:
     fill_tipos()
-    print('datos cargados a la colección')
+    #print('datos cargados a la colección')
   except ValueError:
     print('error al cargar datos a la colección')
 
@@ -127,16 +124,9 @@ def delete_facts():
 def delete_tipos():
   try:
     tipos_collections.delete_many({})
-    print('tipos borrada')
+    #print('tipos borrada')
   except:
-    print('error al borrar facts')
-
-def reset_agenda():
-  try:
-    agenda_collections.delete_many({})
-    print('agenda borrada')
-  except:
-    print('error al borrar facts')
+    print('error al borrar tipos')
 
 ###### Menu #######
 #********************* cargar filter
@@ -149,7 +139,7 @@ def reset_agenda():
 #load_rules()
 
 #********************* cargar tipos
-load_tipos()
+#load_tipos()
 #**********************borrar filters
 #delete_filter()
 
@@ -157,4 +147,4 @@ load_tipos()
 #delete_facts()
 
 #**********************borrar tipos
-delete_tipos()
+#delete_tipos()
